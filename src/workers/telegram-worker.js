@@ -1,5 +1,8 @@
 const db = require("../database/db");
-const { enviarTelegramComBotao } = require("../services/telegram");
+const {
+    enviarTelegramComBotao,
+    enviarTelegramFoto
+} = require("../services/telegram");
 
 async function executar() {
 
@@ -41,11 +44,18 @@ const mensagem = `
 
 #${hashtag} #promocao #ofertas
 `;
-                   await enviarTelegramComBotao(
-    mensagem,
-    oferta.link
-);
-
+          if (oferta.imagem) {
+    await enviarTelegramFoto(
+        mensagem,
+        oferta.link,
+        oferta.imagem
+    );
+} else {
+    await enviarTelegramComBotao(
+        mensagem,
+        oferta.link
+    );
+}         
                     db.run(
                         `
                         UPDATE ofertas

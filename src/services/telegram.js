@@ -64,7 +64,38 @@ async function enviarTelegramComBotao(mensagem, link) {
     return resposta.data;
 }
 
+async function enviarTelegramFoto(mensagem, link, imagem) {
+    const token = await buscarConfig("telegram_token");
+    const chatId = await buscarConfig("telegram_chat_id");
+
+    if (!token || !chatId) {
+        throw new Error("telegram_token ou telegram_chat_id não configurado");
+    }
+
+    const url = `https://api.telegram.org/bot${token}/sendPhoto`;
+
+    const resposta = await axios.post(url, {
+        chat_id: chatId,
+        photo: imagem,
+        caption: mensagem,
+        parse_mode: "HTML",
+        reply_markup: {
+            inline_keyboard: [
+                [
+                    {
+                        text: "🛒 Comprar agora",
+                        url: link
+                    }
+                ]
+            ]
+        }
+    });
+
+    return resposta.data;
+}
+
 module.exports = {
     enviarTelegram,
-    enviarTelegramComBotao
+    enviarTelegramComBotao,
+    enviarTelegramFoto
 };

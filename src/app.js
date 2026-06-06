@@ -1,10 +1,14 @@
 const express = require("express");
 const session = require("express-session");
 const db = require("./database/db");
+const { gerarImagemAmazon } =
+    require("./services/amazon");
 const { gerarMensagem } =
     require("./services/mensagens");
 const { iniciarScheduler } =
     require("./scheduler");
+const { extrairImagemProduto } =
+    require("./services/extrair-imagem");
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 
@@ -75,7 +79,7 @@ app.get("/nova-oferta", proteger, (req,res)=>{
     `);
 });
 
-app.post("/nova-oferta", proteger, (req,res)=>{
+app.post("/nova-oferta", proteger, async (req,res)=>{
 
     const {
         nome,
@@ -84,8 +88,21 @@ app.post("/nova-oferta", proteger, (req,res)=>{
         desconto,
         categoria,
         link,
-        origem
+        origem,
+        imagem
     } = req.body;
+    let imagemFinal = imagem;
+
+if (!imagemFinal || imagemFinal.trim() === "") {
+
+    imagemFinal = await extrairImagemProduto(link);
+
+    if (!imagemFinal && origem === "amazon") {
+        imagemFinal = gerarImagemAmazon(link);
+    }
+}
+
+console.log("Imagem final:", imagemFinal);
 
     db.run(
         `
@@ -98,9 +115,10 @@ app.post("/nova-oferta", proteger, (req,res)=>{
             categoria,
             link,
             origem,
+	    imagem,
             publicado
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+        VALUES (?,?, ?, ?, ?, ?, ?, ?, 0)
         `,
         [
             nome,
@@ -109,7 +127,8 @@ app.post("/nova-oferta", proteger, (req,res)=>{
             parseFloat(desconto.replace(",", ".")),
             categoria,
             link,
-            origem
+            origem,
+            imagemFinal
         ],
         (err)=>{
 
