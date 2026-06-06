@@ -34,6 +34,37 @@ async function enviarTelegram(mensagem) {
     return resposta.data;
 }
 
+async function enviarTelegramComBotao(mensagem, link) {
+    const token = await buscarConfig("telegram_token");
+    const chatId = await buscarConfig("telegram_chat_id");
+
+    if (!token || !chatId) {
+        throw new Error("telegram_token ou telegram_chat_id não configurado");
+    }
+
+    const url = `https://api.telegram.org/bot${token}/sendMessage`;
+
+    const resposta = await axios.post(url, {
+        chat_id: chatId,
+        text: mensagem,
+        parse_mode: "HTML",
+        disable_web_page_preview: false,
+        reply_markup: {
+            inline_keyboard: [
+                [
+                    {
+                        text: "🛒 Comprar agora",
+                        url: link
+                    }
+                ]
+            ]
+        }
+    });
+
+    return resposta.data;
+}
+
 module.exports = {
-    enviarTelegram
+    enviarTelegram,
+    enviarTelegramComBotao
 };

@@ -1,5 +1,5 @@
 const db = require("../database/db");
-const { enviarTelegram } = require("../services/telegram");
+const { enviarTelegramComBotao } = require("../services/telegram");
 
 async function executar() {
 
@@ -22,23 +22,29 @@ async function executar() {
 
                 try{
 
-                    const mensagem = `
-🔥 OFERTA ENCONTRADA
+                   const categoria = oferta.categoria || "ofertas";
 
-📦 ${oferta.nome}
+const hashtag = categoria
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[^a-z0-9]/g, "");
 
-💰 De: R$ ${oferta.preco_antigo}
+const mensagem = `
+🔥 <b>OFERTA ENCONTRADA</b>
 
-💵 Por: R$ ${oferta.preco}
+📦 <b>${oferta.nome}</b>
 
-🎯 Desconto: ${oferta.desconto}%
+💰 De: <s>R$ ${oferta.preco_antigo}</s>
+💵 Por: <b>R$ ${oferta.preco}</b>
 
-🔗 ${oferta.link}
+🎯 <b>${oferta.desconto}% OFF</b>
+
+#${hashtag} #promocao #ofertas
 `;
-
-                    await enviarTelegram(
-                        mensagem
-                    );
+                   await enviarTelegramComBotao(
+    mensagem,
+    oferta.link
+);
 
                     db.run(
                         `
